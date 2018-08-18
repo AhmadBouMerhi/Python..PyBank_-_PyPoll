@@ -1,113 +1,80 @@
-import csv
+# Module for reading CSV files
+
 import os
+import csv
+import statistics
 
+filepath = os.path.join('budget_data.csv')
 
-os.path.join("...", "python-challenge","election_data.csv")
+row_count = 0
+net_revenue = 0
+max_difference = 0
+min_difference = 0
+sum_difference = 0
+num_items_difference = 0
 
-candidates = []
-total_votes = 0
+dates = []
+revenue = []
 
-# opens up the csv and counts the total number of votes and appends all of the voters' candidate choices to a new list
+# reads through csv and counts all of the months as row_count, adds up total revenue, and appends both the dates and revenue values
+# to separate lists
 #
-with open('election_data.csv', mode='r') as csv_file:
-    csv_reader = csv.reader(csv_file, delimiter=',')
-    next(csv_reader, None)
+with open(filepath, newline = '') as csvfile:
+    csv_reader = csv.reader(csvfile, delimiter = ',')    
+    csv_header = next(csv_reader)
     for row in csv_reader:
-        total_votes += 1
-        candidates.append(row[2])
+        row_count +=1
+        net_revenue += int(row[1])
+        dates.append(row[0])
+        revenue.append(int(row[1]))
+
+# creates a list of each profit/loss for every month except the first one
+#
+difference = [revenue[i+1]-revenue[i] for i in range(len(revenue)-1)]
+
+# iterates through the profit/loss for each month and stores values to calculate the average profit/loss
+#
+for items in difference:
+    sum_difference += items
+    num_items_difference +=1
+
+# calculates the average profit/loss and rounds to 2 decimal places
+#
+avg_difference = round(sum_difference/num_items_difference,2)
+
+#avg_difference = round(statistics.mean(difference),2) <----------------This was using the stats module, which is not allowed
+
+# deletes the first element in the dates list to be able to have a list that will correspond to the 
+# list that stores the profit/loss for every month. first profit/loss will be after the first month has passed
+# so we don't count it
+#
+del dates[0]
+
+# zips up the dates and the profit/loss lists and iterates to find the largest gain and biggest loss
+#
+for i, j in zip(dates, difference):
+    if j > max_difference:
+        max_difference = j
+        max_date = i
+    elif j < min_difference:
+        min_difference = j
+        min_date = i
 
 
-# takes the unique number of candidates and stores them as an alphabetically ordered list
-
-unique_candidates = list(sorted(set(candidates)))
-
-# vote_count is the vote for each unique candidate and these values will be stored in a list
-
-vote_count = 0
-unique_candidate_votes = []
-
-# for every unique candidate, this block of code goes down the list of candidates and tallys up the
-# votes for each unique candidate and appends them to a list. 
- 
-for i in range(len(unique_candidates)):
-    for candidate in candidates:
-        if candidate == unique_candidates[i]:
-            vote_count += 1
-    unique_candidate_votes.append(vote_count)           
-    vote_count = 0
-
-# calculates the percent of votes each unique candidate got and adds it to a list
-
-percent_votes = [round((x/total_votes)*100, 2) for x in unique_candidate_votes]
-
-# zips up the data for each unique candidate and stores it in a list that is in descending order from most votes to least votes
-
-results = sorted(list(zip(unique_candidates, unique_candidate_votes, percent_votes)),  key=lambda vote: vote[1], reverse = True)
-
-# since results list in descending order by name, the first name in the list will be the winner
-
-for a, b, c in results:
-    winner = a
-    break
-
-print('Election Results')
-print('-------------------------')
-print(f'Total Votes: {total_votes}')
-print('-------------------------')
-for a, b, c in results:
-    print (f'{a}: {c}%, ({b})')
-print('-------------------------')
-print(f'Winner: {winner}')
-print('-------------------------')
-
+print('Financial Analysis')
+print('------------------------------------')
+print(f'Total Months: {row_count}')
+print(f'Total: ${net_revenue}')
+print(f'Average Change: ${avg_difference}')
+print(f'Greatest Increase in Profits: ${max_difference} on {max_date}')
+print(f'Greatest Decrease in Profits: ${min_difference} on {min_date}')
 
 
 with open('output.txt', 'w', newline='') as textfile:
-    textfile.write('Election Results\n')
-    textfile.write('-------------------------\n')
-    textfile.write(f'Total Votes: {total_votes}\n')
-    for a, b, c in results:
-        textfile.write(f'{a}: {c}%, ({b})\n')
-    textfile.write('-------------------------\n')
-    textfile.write(f'Winner: {winner}\n')
-    textfile.write('-------------------------\n')
-
-
-
-
-########################
-
-# Disregard.... this was the hard-coded solution
-
-# since the unique_candidates list was sorted, we know that the nth element in unique_candidate_votes corresponds
-# to the nth element in unique_candidates.
-# this allows us to create a dictionary out of these pairs
-
-# voting_dict = dict(zip(unique_candidates,unique_candidate_votes))
-        
-# correy_votes = 0
-# khan_votes = 0
-# tooley_votes = 0
-# li_votes = 0
-
-
-# for candidate in candidates:
-#     if candidate == 'Correy':
-#         correy_votes += 1
-#     elif candidate == 'Khan':
-#         khan_votes += 1
-#     elif candidate == 'Li':
-#         li_votes += 1
-#     elif candidate == "O'Tooley":
-#         tooley_votes += 1
-    
-
-
-
-# votes = [correy_votes, khan_votes, li_votes, tooley_votes]
-
-# d = dict(zip(unique_candidates,votes))
-
-#make a list of unique candidates and use that instead of hard-coding in my for loop
-
-    
+    textfile.write('Financial Analysis\n')
+    textfile.write('------------------------------------\n')
+    textfile.write(f'Total Months: {row_count}\n')
+    textfile.write(f'Total: ${net_revenue}\n')
+    textfile.write(f'Average Change: ${avg_difference}\n')
+    textfile.write(f'Greatest Increase in Profits: ${max_difference} on {max_date}\n')
+    textfile.write(f'Greatest Decrease in Profits: ${min_difference} on {min_date}\n')
